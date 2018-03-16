@@ -14,7 +14,7 @@ typedef struct stack{
 
 
 Stack vertices_stack;
-
+int numberOfSCCs;
 
 void Print(Node *list, int numberOfVertices);
 void InsertArc(Node *list, int or, int dst);
@@ -56,29 +56,30 @@ void TarjanVisit(int vertex,int numberOfVertices,  int* d, int* low, int* visite
 	d[vertex] = *visited;
 	low[vertex] = *visited;	
 	
+	
 	*visited=*visited+1;
-	printf("%d\n", *visited);
 	stack_push(vertex, numberOfVertices);
 	
 	tmp = list[vertex].next;
 	while(tmp != NULL){
-		if(d[tmp->vertex]==-1 || inStack(tmp->vertex)){
-			if(d[tmp->vertex]==-1){
-				TarjanVisit(tmp->vertex, numberOfVertices, d, low, visited, list);
+		if(d[(tmp->vertex)-1]==-1 || inStack((tmp->vertex)-1)){
+			if(d[(tmp->vertex)-1]==-1){
+				TarjanVisit((tmp->vertex)-1, numberOfVertices, d, low, visited, list);
 			}
-			if(low[tmp->vertex]<low[vertex]){
-				low[vertex]=low[tmp->vertex];
+			if(low[(tmp->vertex)-1]<low[vertex]){
+				low[vertex]=low[(tmp->vertex)-1];
 			}
 		}
 		tmp=tmp->next;
 	}
 	if(d[vertex]==low[vertex]){
 		int v;
-		printf("SSC:\n");
+		//printf("SSC:\n");
+		numberOfSCCs++;
 		while((v =stack_pop()) != -1){
-			printf("%d\n", v+1);
-			if(vertex == v){
-				printf("NEW SCC\n");
+			//printf("%d\n", v+1);
+			if(vertex == v){		
+				//printf("NEW SCC\n");
 				break;
 			}
 		}			
@@ -92,7 +93,6 @@ int SCCTarjan(Node* list, int numberOfVertices){
 	int i;
 	int visited = 0;
 	int* ptr_visited = &visited;
-	
 
 	int d[numberOfVertices];
 	int low[numberOfVertices];
@@ -105,13 +105,14 @@ int SCCTarjan(Node* list, int numberOfVertices){
 		d[i] = -1;
 	}
 	
+	
 	for(i=0; i<numberOfVertices; i++){
 		if (d[i] == -1){
 			TarjanVisit(i,numberOfVertices, d, low, ptr_visited, list);
 		}
 	}
 	
-	
+	printf("SSCs:%d\n ", numberOfSCCs);
 	return 0;
 }
 
