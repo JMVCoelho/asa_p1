@@ -26,6 +26,18 @@ void Print(Node *list, int numberOfVertices);
 void InsertArc(Node *list, int or, int dst);
 void freeList(Node *list, int numberOfVertices);
 
+int compFirstEl(const void * a, const void * b){
+	int *u = (int*) a;
+	int *v = (int*) b;
+	return (u[0] - v[0]);
+}
+
+int compSecondEl(const void * a, const void * b){
+	int *u = (int*) a;
+	int *v = (int*) b;
+	return (u[1] - v[1]);
+}
+
 void stack_push(int v, int numberOfVertices){
 	vertices_stack.top++;
 	if(vertices_stack.top < numberOfVertices){
@@ -94,16 +106,13 @@ void TarjanVisit(int vertex, int numberOfVertices, int *d, int *low, int *visite
 	}
 }
 
-int SCCTarjan(Node *list, int numberOfVertices){
+int SCCTarjan(Node *list, int numberOfVertices, int numberOfEdges, int *vertexBelongsToSCC, int *minSCC){
 	int i;
 	int visited = 0;
 	int *ptr_visited = &visited;
 
 	int *d = (int*) malloc(sizeof(int)*numberOfVertices);
 	int *low = (int*) malloc(sizeof(int)*numberOfVertices);
-
-	int *vertexBelongsToSCC = (int*) malloc(sizeof(int)*numberOfVertices);
-	int *minSCC = (int*) malloc(sizeof(int)*numberOfVertices);
 
 	vertices_stack.vertices = (int*)malloc(sizeof(int)*numberOfVertices);
 	vertices_stack.top = -1;
@@ -120,6 +129,54 @@ int SCCTarjan(Node *list, int numberOfVertices){
 		}
 	}
 
+	free(d);
+	free(low);
+	return 0;
+}
+
+int main(){
+  int or,dst;
+  int numberOfVertices;
+  int numberOfEdges;
+  int i, j;
+
+  scanf("%d",&numberOfVertices);
+	scanf("%d", &numberOfEdges);
+
+	Node *list = (Node*)malloc(sizeof(Node)*numberOfVertices);
+	int orderedEdgeList[numberOfEdges][2];
+	int neighborList[numberOfVertices];
+	int *vertexBelongsToSCC = (int*) malloc(sizeof(int)*numberOfVertices);
+	int *minSCC = (int*) malloc(sizeof(int)*numberOfVertices);
+
+  //Inicialização da lista.
+  for(i=0; i<numberOfVertices; i++){
+    list[i].vertex = i+1;
+    list[i].next = NULL;
+		neighborList[i]=0;
+  }
+
+  //leitura dos vertices (a,b) - passagem para a função que insere um arco.
+  for(i=0; i<numberOfEdges; i++){
+		scanf("%d %d", &or, &dst);
+		orderedEdgeList[i][0] = or;
+		orderedEdgeList[i][1] = dst;
+		neighborList[or-1]++;
+    InsertArc(list,or,dst);
+  }
+	qsort(orderedEdgeList, numberOfEdges, sizeof(int)*2, compFirstEl);
+	for (i=0, j=0; i<numberOfVertices; i++) {
+		int len = neighborList[i];
+		if (len)
+			qsort(orderedEdgeList+j, len, sizeof(int)*2, compSecondEl);
+		j = j + len;
+	}
+	printf("lista apos 2o sort:\n");
+	for(i=0; i<numberOfEdges; i++){
+		printf("%d %d\n", orderedEdgeList[i][0], orderedEdgeList[i][1]);
+	}
+	SCCTarjan(list, numberOfVertices, numberOfEdges, vertexBelongsToSCC, minSCC);
+
 	printf("SSCs:%d\n ", numberOfSCCs);
 	printf("belongs: ");
 	for(i=0; i<numberOfVertices; i++){
@@ -130,39 +187,23 @@ int SCCTarjan(Node *list, int numberOfVertices){
 		printf("%d  ", minSCC[i]);
 	}
 
+	int prevOr = -1;
+	int prevDst = -1;
+	int printOr, printDst;
+	for (i = 0; i<numberOfEdges; i++) {
+		if ((vertexBelongsToSCC[orderedEdgeList[i][0]-1] != vertexBelongsToSCC[orderedEdgeList[i][1]-1])) {
+			printOr = minSCC[vertexBelongsToSCC[orderedEdgeList[i][0]-1]];
+			printDst = minSCC[vertexBelongsToSCC[orderedEdgeList[i][1]-1]];
+			if (printOr != prevOr || printDst != prevDst) {
+				printf("\nponte %d %d", printOr, printDst);
+			}
+			prevOr = printOr;
+			prevDst = printDst;
+		}
+	}
 
 	free(vertexBelongsToSCC);
 	free(minSCC);
-	free(d);
-	free(low);
-	return 0;
-}
-
-int main(){
-  int or,dst;
-  int numberOfVertices;
-  int numberOfEdges;
-  int i;
-
-  scanf("%d",&numberOfVertices);
-  //Node list[numberOfVertices];
-	Node *list = (Node*)malloc(sizeof(Node)*numberOfVertices);
-
-  //Inicialização da lista.
-  for(i=0; i<numberOfVertices; i++){
-    list[i].vertex = i+1;
-    list[i].next = NULL;
-  }
-
-  //Leitura do numero de arestas
-  scanf("%d", &numberOfEdges);
-
-  //leitura dos vertices (a,b) - passagem para a função que insere um arco.
-  for(i=0; i<numberOfEdges; i++){
-	scanf("%d %d", &or, &dst);
-    InsertArc(list,or,dst);
-  }
-	SCCTarjan(list, numberOfVertices);
 	freeList(list, numberOfVertices);
 }
 
