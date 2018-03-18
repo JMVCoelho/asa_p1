@@ -96,7 +96,7 @@ void TarjanVisit(int vertex, int numberOfVertices, int *d, int *low, int *visite
 				min = v;
 			}
 			vertexBelongsToSCC[v] = numberOfSCCs;
-			//SCC ends here
+
 			if(vertex == v){
 				break;
 			}
@@ -149,14 +149,12 @@ int main(){
 	int *vertexBelongsToSCC = (int*) malloc(sizeof(int)*numberOfVertices);
 	int *minSCC = (int*) malloc(sizeof(int)*numberOfVertices);
 
-  //Inicialização da lista.
   for(i=0; i<numberOfVertices; i++){
     list[i].vertex = i+1;
     list[i].next = NULL;
 		neighborList[i]=0;
   }
 
-  //leitura dos vertices (a,b) - passagem para a função que insere um arco.
   for(i=0; i<numberOfEdges; i++){
 		scanf("%d %d", &or, &dst);
 		orderedEdgeList[i][0] = or;
@@ -165,27 +163,18 @@ int main(){
     InsertArc(list,or,dst);
   }
 	qsort(orderedEdgeList, numberOfEdges, sizeof(int)*2, compFirstEl);
+	int len;
 	for (i=0, j=0; i<numberOfVertices; i++) {
-		int len = neighborList[i];
+		len = neighborList[i];
 		if (len)
 			qsort(orderedEdgeList+j, len, sizeof(int)*2, compSecondEl);
 		j = j + len;
 	}
-	// printf("lista apos 2o sort:\n");
-	// for(i=0; i<numberOfEdges; i++){
-	// 	printf("%d %d\n", orderedEdgeList[i][0], orderedEdgeList[i][1]);
-	// }
+
 	SCCTarjan(list, numberOfVertices, numberOfEdges, vertexBelongsToSCC, minSCC);
 
 	printf("%d\n", numberOfSCCs);
-	// printf("belongs: ");
-	// for(i=0; i<numberOfVertices; i++){
-	// 	printf("%d  ", vertexBelongsToSCC[i]+1);
-	// }
-	// printf("\nmins: ");
-	// for(i=0; i<numberOfVertices; i++){
-	// 	printf("%d  ", minSCC[i]);
-	// }
+
 
 	int prevOr = -1;
 	int prevDst = -1;
@@ -224,33 +213,20 @@ int main(){
 }
 
 void InsertArc(Node *list, int or, int dst){
-  Node *aux = (Node*) malloc(sizeof(Node));    //retorno de um ponteiro genérico.
+  Node *aux = (Node*) malloc(sizeof(Node));
   aux->vertex = dst;
 
-  if(list[or-1].next == NULL) // Caso a list estiver vazia - Insere
+  if(list[or-1].next == NULL)
 		aux->next = NULL;
-  else	{ // insere como primeiro da list. O(1)
+  else	{
     aux->next = list[or-1].next;
   }
 	list[or-1].next = aux;
 }
 
-void Print(Node *list, int numberOfVertices){
-  int i;
-  Node *tmp;
-  for(i=0; i<numberOfVertices; i++) {
-    tmp = list[i].next;
-    printf("%2d: (%d) ==>", i, list[i].vertex);
-    while (tmp != NULL) {
-      printf("%d  ", tmp->vertex);
-      tmp = tmp->next;
-    }
-    printf("\n");
-  }
-}
-
 void freeList(Node *list, int numberOfVertices) {
-	for (int i=0; i<numberOfVertices; i++) {
+	int i;
+	for (i=0; i<numberOfVertices; i++) {
 		Node *head = &list[i];
 		while (head->next != NULL) {
 			Node *tmp = head->next;
@@ -260,17 +236,3 @@ void freeList(Node *list, int numberOfVertices) {
 	}
 	free(list);
 }
-
-//Para inserir ordenadamente:
-/* 		          //insere os vértices ordenados
-    else if (tmp->next == NULL) {
-      aux->next = tmp->next;
-      tmp->next = aux;
-    }
-    else {
-      while((tmp->next != NULL) &&(tmp->next->vertex < b))
-	tmp = tmp->next;
-      aux->next = tmp->next;
-      tmp->next = aux;
-    }*/
-//e adicionar um if(tmp->vertex > b) antes de aux->next = temp (l68~)
