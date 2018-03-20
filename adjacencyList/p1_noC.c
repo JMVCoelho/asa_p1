@@ -19,17 +19,17 @@ int numberOfSCCs = 0;
 void InsertArc(Node *list, int or, int dst);
 void freeList(Node *list, int numberOfVertices);
 
-int compFirstEl(const void * a, const void * b){
-	int *u = (int*) a;
-	int *v = (int*) b;
-	return (u[0] - v[0]);
-}
-
-int compSecondEl(const void * a, const void * b){
-	int *u = (int*) a;
-	int *v = (int*) b;
-	return (u[1] - v[1]);
-}
+// int compFirstEl(const void * a, const void * b){
+// 	int *u = (int*) a;
+// 	int *v = (int*) b;
+// 	return (u[0] - v[0]);
+// }
+//
+// int compSecondEl(const void * a, const void * b){
+// 	int *u = (int*) a;
+// 	int *v = (int*) b;
+// 	return (u[1] - v[1]);
+// }
 
 void stack_push(int v, int numberOfVertices){
 	vertices_stack.top++;
@@ -113,7 +113,7 @@ int main(){
   int or,dst;
   int numberOfVertices;
   int numberOfEdges;
-  int i, j;
+  int i;
 
   if (scanf("%d",&numberOfVertices) != 1) {
 		printf("Erro ao ler o numero de vertices");
@@ -127,14 +127,14 @@ int main(){
 
 	Node *list = (Node*)malloc(sizeof(Node)*numberOfVertices);
 	int orderedEdgeList[numberOfEdges][2];
-	int neighborList[numberOfVertices];
+	// int neighborList[numberOfVertices];
 	int *minSCC = (int*) malloc(sizeof(int)*numberOfVertices);
 
   for(i=0; i<numberOfVertices; i++){
     list[i].vertex = i+1;
     list[i].next = NULL;
 		list[i].isInStack = 0;
-		neighborList[i]=0;
+		// neighborList[i]=0;
   }
 
   for(i=0; i<numberOfEdges; i++){
@@ -143,56 +143,70 @@ int main(){
 			printf("Erro ao ler o numero de arestas");
 			return 1;
 		}
-
 		orderedEdgeList[i][0] = or;
 		orderedEdgeList[i][1] = dst;
-		neighborList[or-1]++;
+		// neighborList[or-1]++;
     InsertArc(list,or,dst);
   }
-	qsort(orderedEdgeList, numberOfEdges, sizeof(int)*2, compFirstEl);
-	int len;
-	for (i=0, j=0; i<numberOfVertices; i++) {
-		len = neighborList[i];
-		if (len)
-			qsort(orderedEdgeList+j, len, sizeof(int)*2, compSecondEl);
-		j = j + len;
-	}
 
 	SCCTarjan(list, numberOfVertices, numberOfEdges, minSCC);
 
 	printf("%d\n", numberOfSCCs);
 
+	for (i=0; i<numberOfEdges; i++) {
+		orderedEdgeList[i][0] = minSCC[list[orderedEdgeList[i][0]-1].scc_id];
+		orderedEdgeList[i][1] = minSCC[list[orderedEdgeList[i][1]-1].scc_id];
+	}
 
-	int prevOr = -1;
-	int prevDst = -1;
-	int bridges = 0;
-	int printOr, printDst;
-	for (i = 0; i<numberOfEdges; i++) {
-		if ((list[orderedEdgeList[i][0]-1].scc_id != list[orderedEdgeList[i][1]-1].scc_id)) {
-			printOr = minSCC[list[orderedEdgeList[i][0]-1].scc_id];
-			printDst = minSCC[list[orderedEdgeList[i][1]-1].scc_id];
-			if (printOr != prevOr || printDst != prevDst) {
-				bridges++;
-			}
-			prevOr = printOr;
-			prevDst = printDst;
+	// qsort(orderedEdgeList, numberOfEdges, sizeof(int)*2, compFirstEl);
+	// int len;
+	// for (i=0, j=0; i<numberOfVertices; i++) {
+	// 	len = neighborList[i];
+	// 	if (len)
+	// 		qsort(orderedEdgeList+j, len, sizeof(int)*2, compSecondEl);
+	// 	j = j + len;
+	// }
+
+	printf("lista apos 1o sort:\n");
+	int j = 0;
+	for(i=0; i<numberOfEdges; i++){
+		if (orderedEdgeList[i][0] != orderedEdgeList[i][1]) {
+			printf("%d %d\n", orderedEdgeList[i][0], orderedEdgeList[i][1]);
+			j++;
 		}
 	}
-	printf("%d\n", bridges);
+	printf("\npontes %d", j);
 
-	prevOr = -1;
-	prevDst = -1;
-	for (i = 0; i<numberOfEdges; i++) {
-		if ((list[orderedEdgeList[i][0]-1].scc_id != list[orderedEdgeList[i][1]-1].scc_id)) {
-			printOr = minSCC[list[orderedEdgeList[i][0]-1].scc_id];
-			printDst = minSCC[list[orderedEdgeList[i][1]-1].scc_id];
-			if (printOr != prevOr || printDst != prevDst) {
-				printf("%d %d\n", printOr, printDst);
-			}
-			prevOr = printOr;
-			prevDst = printDst;
-		}
-	}
+	// int prevOr = -1;
+	// int prevDst = -1;
+	// int bridges = 0;
+	// int printOr, printDst;
+	// for (i = 0; i<numberOfEdges; i++) {
+	// 	if ((list[orderedEdgeList[i][0]-1].scc_id != list[orderedEdgeList[i][1]-1].scc_id)) {
+	// 		printOr = minSCC[list[orderedEdgeList[i][0]-1].scc_id];
+	// 		printDst = minSCC[list[orderedEdgeList[i][1]-1].scc_id];
+	// 		if (printOr != prevOr || printDst != prevDst) {
+	// 			bridges++;
+	// 		}
+	// 		prevOr = printOr;
+	// 		prevDst = printDst;
+	// 	}
+	// }
+	// printf("%d\n", bridges);
+  //
+	// prevOr = -1;
+	// prevDst = -1;
+	// for (i = 0; i<numberOfEdges; i++) {
+	// 	if ((list[orderedEdgeList[i][0]-1].scc_id != list[orderedEdgeList[i][1]-1].scc_id)) {
+	// 		printOr = minSCC[list[orderedEdgeList[i][0]-1].scc_id];
+	// 		printDst = minSCC[list[orderedEdgeList[i][1]-1].scc_id];
+	// 		if (printOr != prevOr || printDst != prevDst) {
+	// 			printf("%d %d\n", printOr, printDst);
+	// 		}
+	// 		prevOr = printOr;
+	// 		prevDst = printDst;
+	// 	}
+	// }
 
 	free(minSCC);
 	freeList(list, numberOfVertices);
