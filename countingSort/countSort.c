@@ -37,7 +37,7 @@ void countSort(int arr[][2], int numberOfVertices, int numberOfEdges, int u)
     memset(count, 0, sizeof(count));
     
     // Store count of each character
-    for(i = 0; i< numberOfEdges; ++i)
+    for(i = 0; i<numberOfEdges; ++i)
         ++count[arr[i][u]];
         
  
@@ -47,12 +47,23 @@ void countSort(int arr[][2], int numberOfVertices, int numberOfEdges, int u)
         count[i] += count[i-1];
  
     // Build the output character array
-    for (i = 0; i < numberOfEdges; ++i)
-    {
-        output[count[arr[i][u]]-1][0] = arr[i][0];
-        output[count[arr[i][u]]-1][1] = arr[i][1];
-        --count[arr[i][u]];
-    }
+    if(u == 1){
+		for (i = 0; i < numberOfEdges; ++i)
+		{
+			output[count[arr[i][u]]-1][1] = arr[i][1];
+			output[count[arr[i][u]]-1][0] = arr[i][0];
+			--count[arr[i][u]];
+		}
+	}
+	
+	else if(u == 0){
+		for (i = numberOfEdges-1; i >= 0; --i)
+		{
+			output[count[arr[i][u]]-1][1] = arr[i][1];
+			output[count[arr[i][u]]-1][0] = arr[i][0];
+			--count[arr[i][u]];
+		}
+	}
     
  
     // Copy the output array to arr, so that arr now
@@ -69,16 +80,13 @@ void removeDuplicates(int arr[][2], int n)
     int j = 0;
 	int i;
     // maintaining another updated index i.e. j
-    printf("vou entrar no loop\n");
     for (i=0; i < n-1; i++){
         if (arr[i][0] != arr[i+1][0] && arr[i][1] != arr[i+1][1]){
-			printf("entrei no if do loop\n");
             arr[j][1] = arr[i][1];
             arr[j][0] = arr[i][0];
             j++;
 		}
 	}
-	printf("tou fora do loop\n");
     arr[j][0] = arr[n-1][0];
     arr[j][1] = arr[n-1][1];
     j++;
@@ -263,11 +271,13 @@ int main(){
 		orderedEdgeList[i][0] = minSCC[list[orderedEdgeList[i][0]-1].scc_id];
 		orderedEdgeList[i][1] = minSCC[list[orderedEdgeList[i][1]-1].scc_id];
 	}
-
-
+	
 	countSort(orderedEdgeList, numberOfVertices, numberOfEdges,1);
 	countSort(orderedEdgeList, numberOfVertices, numberOfEdges,0);
+	
+	//removeDuplicates(orderedEdgeList,numberOfEdges);
 
+	
 	
 
 	int j;
