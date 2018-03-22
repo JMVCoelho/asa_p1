@@ -18,7 +18,7 @@ void InsertEdge(Node *list, int or, int dst);
 void SCCTarjan(Node *list, int numberOfVertices, int numberOfEdges, int *minSCC);
 void TarjanVisit(int vertex, int numberOfVertices, int *d, int *low, int *visited, Node *list, int *minSCC);
 void countSort(int **arr, int numberOfVertices, int numberOfEdges, int u);
-void freeList(Node *list, int numberOfVertices);
+int freeList(Node *list, int numberOfVertices, int **orderedEdgeList, int *minSCC);
 
 Stack vertices_stack;
 int numberOfSCCs = 0;
@@ -55,9 +55,6 @@ int main(){
 			return 1;
 		}
 		if (or != dst) {
-			orderedEdgeList[i] = (int*) malloc(sizeof(int)*2);
-			orderedEdgeList[i][0] = or;
-			orderedEdgeList[i][1] = dst;
 			InsertEdge(list, or, dst);
 		}
   }
@@ -66,22 +63,17 @@ int main(){
 
 	printf("%d\n", numberOfSCCs);
 
-	for (i=0; i<numberOfEdges; i++) {
-		orderedEdgeList[i][0] = minSCC[list[orderedEdgeList[i][0]-1].scc_id];
-		orderedEdgeList[i][1] = minSCC[list[orderedEdgeList[i][1]-1].scc_id];
-	}
-
+  int possibleBridges = freeList(list, numberOfVertices, orderedEdgeList, minSCC);
 	free(minSCC);
-	freeList(list, numberOfVertices);
 
-	countSort(orderedEdgeList, numberOfVertices, numberOfEdges, 1);
-	countSort(orderedEdgeList, numberOfVertices, numberOfEdges, 0);
+	countSort(orderedEdgeList, numberOfVertices, possibleBridges, 1);
+	countSort(orderedEdgeList, numberOfVertices, possibleBridges, 0);
 
 	int prevOr = -1;
 	int prevDst = -1;
 	int bridges = 0;
 	int printOr, printDst;
-	for (i=0; i<numberOfEdges; i++) {
+	for (i=0; i<possibleBridges; i++) {
 		if (orderedEdgeList[i][0] != orderedEdgeList[i][1]) {
 			printOr = orderedEdgeList[i][0];
 			printDst = orderedEdgeList[i][1];
@@ -96,7 +88,7 @@ int main(){
 
 	prevOr = -1;
 	prevDst = -1;
-	for (i=0; i<numberOfEdges; i++) {
+	for (i=0; i<possibleBridges; i++) {
 		if (orderedEdgeList[i][0] != orderedEdgeList[i][1]) {
 			printOr = orderedEdgeList[i][0];
 			printDst = orderedEdgeList[i][1];
@@ -108,7 +100,7 @@ int main(){
 		}
 	}
 
-	for(i=0; i<numberOfEdges; i++){
+	for(i=0; i<possibleBridges; i++){
 		free(orderedEdgeList[i]);
 	}
 	free(orderedEdgeList);
@@ -234,15 +226,24 @@ void countSort(int **arr, int numberOfVertices, int numberOfEdges, int u) {
 	}
 }
 
-void freeList(Node *list, int numberOfVertices) {
-	int i;
-	for (i=0; i<numberOfVertices; i++) {
+int freeList(Node *list, int numberOfVertices, int **orderedEdgeList, int *minSCC) {
+	int i, j, or, dst;
+	for (i=0, j=0; i<numberOfVertices; i++) {
 		Node *head = &list[i];
 		while (head->next != NULL) {
 			Node *tmp = head->next;
+      or = minSCC[head->scc_id];
+      dst = minSCC[list[(tmp->vertex)-1].scc_id];
+      if (or != dst) {
+        orderedEdgeList[j] = (int*) malloc(sizeof(int)*2);
+        orderedEdgeList[j][0] = or;
+        orderedEdgeList[j][1] = dst;
+        j++;
+      }
 			head->next = tmp->next;
 			free(tmp);
 		}
 	}
 	free(list);
+  return j;
 }
