@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* struct used for the linked lists */
 typedef struct node{
 	int vertex;
 	int scc_id;
@@ -9,6 +10,7 @@ typedef struct node{
 	struct node *next;
 } Node;
 
+/* struct used for the Tarjan algorithm stack */
 typedef struct stack{
 	int top;
 	int *vertices;
@@ -18,7 +20,7 @@ void InsertEdge(Node *list, int or, int dst);
 void SCCTarjan(Node *list, int numberOfVertices, int numberOfEdges, int *minSCC);
 void TarjanVisit(int vertex, int numberOfVertices, int *d, int *low, int *visited, Node *list, int *minSCC);
 void countSort(int **arr, int numberOfVertices, int numberOfEdges, int u);
-int freeList(Node *list, int numberOfVertices, int **orderedEdgeList, int *minSCC);
+int freeLLandCreateEdgeList(Node *list, int numberOfVertices, int **orderedEdgeList, int *minSCC);
 
 Stack vertices_stack;
 int numberOfSCCs = 0;
@@ -40,6 +42,8 @@ int main(){
 	}
 
 	Node *list = (Node*) malloc(sizeof(Node)*numberOfVertices);
+	/* minSCC stores the identifier for each SCC, starting at index 0 for the
+	first SCC and so on */
 	int *minSCC = (int*) malloc(sizeof(int)*numberOfVertices);
 	int **orderedEdgeList = (int**) malloc(sizeof(int*)*numberOfEdges);
 
@@ -63,12 +67,14 @@ int main(){
 
 	printf("%d\n", numberOfSCCs);
 
-  int possibleBridges = freeList(list, numberOfVertices, orderedEdgeList, minSCC);
+  int possibleBridges = freeLLandCreateEdgeList(list, numberOfVertices, orderedEdgeList, minSCC);
 	free(minSCC);
 
+	/* sort the list of edges twice, first by its destiny, then by its origin */
 	countSort(orderedEdgeList, numberOfVertices, possibleBridges, 1);
 	countSort(orderedEdgeList, numberOfVertices, possibleBridges, 0);
 
+	/* count the number of bridges between SCCs ignoring possible repetitions */
 	int prevOr = -1;
 	int prevDst = -1;
 	int bridges = 0;
@@ -86,6 +92,7 @@ int main(){
 	}
 	printf("%d\n", bridges);
 
+	/* print the bridges between SCCs, also ignoring possible repetitions */
 	prevOr = -1;
 	prevDst = -1;
 	for (i=0; i<possibleBridges; i++) {
@@ -123,6 +130,8 @@ void InsertEdge(Node *list, int or, int dst){
 
 void SCCTarjan(Node *list, int numberOfVertices, int numberOfEdges, int *minSCC) {
 	int i;
+	/* int that keeps track of visiting times for Tarjan algorithm
+	and a pointer to it to update it easily */
 	int visited = 0;
 	int *ptr_visited = &visited;
 
@@ -130,6 +139,8 @@ void SCCTarjan(Node *list, int numberOfVertices, int numberOfEdges, int *minSCC)
 	int *low = (int*) malloc(sizeof(int)*numberOfVertices);
 
 	vertices_stack.vertices = (int*)malloc(sizeof(int)*numberOfVertices);
+	/* saves the size of the stack-1 so that we can access to the first element
+	using index 0 */
 	vertices_stack.top = -1;
 
 	for(i=0; i<numberOfVertices; i++){
@@ -155,6 +166,7 @@ void TarjanVisit(int vertex, int numberOfVertices, int *d, int *low, int *visite
 
 	*visited = *visited+1;
 
+	/* increase stack size and add the vertex to the list */
 	vertices_stack.top++;
 	vertices_stack.vertices[vertices_stack.top] = vertex;
 
@@ -220,13 +232,17 @@ void countSort(int **arr, int numberOfVertices, int numberOfEdges, int u) {
 			--count[arr[i][u]];
 		}
 	}
+
 	for (i=0; i<numberOfEdges; ++i){
 		arr[i][0] = output[i][0];
     arr[i][1] = output[i][1];
 	}
 }
 
-int freeList(Node *list, int numberOfVertices, int **orderedEdgeList, int *minSCC) {
+/* This function creates a list of edges that connect two different SCCs.
+It simultaneously creates that list while freeing the memory allocated
+for the adjacency list, thus reducing the total memory needed */
+int freeLLandCreateEdgeList(Node *list, int numberOfVertices, int **orderedEdgeList, int *minSCC) {
 	int i, j, or, dst;
 	for (i=0, j=0; i<numberOfVertices; i++) {
 		Node *head = &list[i];
@@ -234,10 +250,13 @@ int freeList(Node *list, int numberOfVertices, int **orderedEdgeList, int *minSC
 			Node *tmp = head->next;
       or = minSCC[head->scc_id];
       dst = minSCC[list[(tmp->vertex)-1].scc_id];
+			/* if the origin is different from the destiny, this edge connects two different SCCs */
       if (or != dst) {
         orderedEdgeList[j] = (int*) malloc(sizeof(int)*2);
         orderedEdgeList[j][0] = or;
         orderedEdgeList[j][1] = dst;
+				/* j keeps track of how many edges between different SCCS
+				we added to the list */
         j++;
       }
 			head->next = tmp->next;
